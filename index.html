@@ -186,33 +186,43 @@
   .export-btn svg{ width:13px; height:13px; }
 
   /* IMPORT */
-  .import-mapping-head{
-    display:grid; grid-template-columns:1fr 20px 1fr; align-items:center; gap:10px;
-    padding:0 2px 8px 2px; font-size:10.5px; font-weight:700; text-transform:uppercase;
-    letter-spacing:0.4px; color:var(--text-faint); border-bottom:1px solid var(--border); margin-bottom:2px;
-  }
-  .import-row{
-    display:grid; grid-template-columns:1fr 20px 1fr; align-items:center; gap:10px;
-    padding:8px 2px;
-  }
-  .import-row-label{
-    font-size:12.5px; font-weight:600; color:var(--text); overflow:hidden;
-    text-overflow:ellipsis; white-space:nowrap; background:var(--gray-soft);
-    padding:6px 10px; border-radius:7px;
-  }
-  .import-row-arrow{ color:var(--text-faint); text-align:center; font-size:13px; }
-  .import-row select{
-    width:100%; padding:8px 10px; border:1px solid var(--border); border-radius:8px;
-    font-size:12.5px; font-family:'Inter'; background:#fff; color:var(--text); cursor:pointer;
-  }
-  .import-row select:focus{ outline:none; border-color:var(--navy); box-shadow:0 0 0 3px rgba(27,82,120,0.12); }
-  .import-preview-wrap{ overflow-x:auto; border:1px solid var(--border); border-radius:8px; max-height:180px; overflow-y:auto; }
-  .import-preview-wrap table{ width:100%; font-size:11.5px; box-shadow:none; border-radius:0; }
-  .import-preview-wrap th{ padding:7px 10px; background:#FAFBFC; border-bottom:1px solid var(--border); text-align:left; position:sticky; top:0; }
-  .import-preview-wrap td{ padding:7px 10px; border-bottom:1px solid var(--border); white-space:nowrap; }
   .import-divider{ text-align:center; color:var(--text-faint); font-size:11.5px; margin:12px 0; text-transform:uppercase; letter-spacing:0.5px; }
   .import-summary{ margin-top:12px; font-size:12.5px; color:var(--text-soft); }
   .import-summary.warn{ color:var(--red); font-weight:600; }
+
+  .import-map-intro{ font-size:12.5px; color:var(--text-soft); margin-bottom:14px; }
+
+  .import-map-table-wrap{
+    overflow:auto; border:1px solid var(--border); border-radius:10px; box-shadow:var(--shadow); max-height:380px;
+  }
+  .import-map-table{ border-collapse:separate; border-spacing:0; }
+  .import-col-header{
+    min-width:172px; max-width:172px; padding:12px 12px 10px 12px; background:#FAFBFC;
+    border-bottom:1px solid var(--border); border-right:1px solid var(--border);
+    position:sticky; top:0; z-index:2; vertical-align:top;
+  }
+  .import-col-header:last-child{ border-right:none; }
+  .import-col-name{
+    font-size:11px; font-weight:700; color:var(--text-soft); white-space:nowrap; overflow:hidden;
+    text-overflow:ellipsis; margin-bottom:9px; display:flex; align-items:center; gap:4px;
+  }
+  .import-col-required{ color:var(--orange); font-weight:800; }
+  .import-col-select{
+    width:100%; padding:7px 8px; border:1px solid var(--border); border-radius:7px; font-size:11.5px;
+    font-family:'Inter'; background:#fff; color:var(--text); cursor:pointer;
+  }
+  .import-col-select:focus{ outline:none; border-color:var(--navy); box-shadow:0 0 0 3px rgba(27,82,120,0.14); }
+  .import-col-header.mapped-nome{ background:var(--orange-soft); }
+  .import-col-header.mapped-nome .import-col-name{ color:var(--orange); }
+  .import-col-header.mapped-ignore .import-col-select{ color:var(--text-faint); }
+  .import-map-table td.import-cell{
+    min-width:172px; max-width:172px; padding:9px 12px; border-bottom:1px solid var(--border);
+    border-right:1px solid var(--border); font-size:12px; color:var(--text-soft);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .import-map-table tbody tr:last-child td{ border-bottom:none; }
+  .import-map-table td.import-cell:last-child{ border-right:none; }
+  .import-map-table tbody tr:nth-child(even) td{ background:#FAFBFC; }
 
   .import-result-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:16px; }
   .import-result-card{
@@ -517,9 +527,7 @@
     .kanban-card{ cursor:pointer; }
     .kanban-move-select{ display:block; }
 
-    .import-row{ grid-template-columns:1fr; gap:4px; }
-    .import-row-arrow{ display:none; }
-    .import-mapping-head{ display:none; }
+    .import-col-header, .import-map-table td.import-cell{ min-width:140px; max-width:140px; }
   }
 </style>
 </head>
@@ -873,7 +881,7 @@
 
 <!-- IMPORT MODAL -->
 <div class="modal-overlay" id="importModalOverlay">
-  <div class="modal" style="max-width:720px;">
+  <div class="modal" style="max-width:960px;">
     <div class="modal-head">
       <h3>Importar leads</h3>
       <div class="modal-close" id="importModalClose">
@@ -899,10 +907,10 @@
       </div>
 
       <div id="importStep2" style="display:none;">
-        <div style="font-size:12.5px; color:var(--text-soft); margin-bottom:12px;">Confira o mapeamento de cada coluna antes de importar:</div>
-        <div id="importMappingContainer" style="display:flex; flex-direction:column; gap:9px; margin-bottom:18px;"></div>
-        <div style="font-size:12px; font-weight:700; color:var(--text-soft); margin-bottom:8px;">Pré-visualização (5 primeiras linhas)</div>
-        <div class="import-preview-wrap"><table id="importPreviewTable"></table></div>
+        <div class="import-map-intro">
+          <span>Para cada coluna do seu arquivo, escolha o campo correspondente no CRM. Role para o lado para ver todas as colunas.</span>
+        </div>
+        <div class="import-map-table-wrap" id="importMapTableWrap"></div>
         <div class="import-summary" id="importSummary"></div>
       </div>
 
@@ -1643,47 +1651,54 @@ function processImportInput(){
 }
 
 function renderImportMapping(){
-  const container = document.getElementById('importMappingContainer');
-  const headHtml = `
-    <div class="import-mapping-head">
-      <span>Coluna do seu arquivo</span>
-      <span></span>
-      <span>Campo no CRM</span>
-    </div>`;
-  const rowsHtml = importParsed.headers.map((h, i) => `
-    <div class="import-row">
-      <span class="import-row-label">${escapeHtml(h)}</span>
-      <span class="import-row-arrow">→</span>
-      <select data-index="${i}">
-        ${IMPORT_FIELD_OPTIONS.map(([val,label]) => `<option value="${val}" ${importMapping[i]===val ? 'selected' : ''}>${label}</option>`).join('')}
-      </select>
-    </div>
+  const wrap = document.getElementById('importMapTableWrap');
+  const previewRows = importParsed.rows.slice(0, 8);
+
+  const headerCellsHtml = importParsed.headers.map((h, i) => {
+    const mapped = importMapping[i];
+    const stateClass = mapped === 'nome' ? 'mapped-nome' : (mapped === 'ignore' ? 'mapped-ignore' : '');
+    return `
+      <th class="import-col-header ${stateClass}" data-th-index="${i}">
+        <div class="import-col-name" title="${escapeHtml(h)}">${escapeHtml(h)}</div>
+        <select class="import-col-select" data-index="${i}">
+          ${IMPORT_FIELD_OPTIONS.map(([val,label]) => `<option value="${val}" ${mapped===val ? 'selected' : ''}>${val==='nome' ? label+' *' : label}</option>`).join('')}
+        </select>
+      </th>`;
+  }).join('');
+
+  const bodyRowsHtml = previewRows.map(row => `
+    <tr>${row.map(cell => `<td class="import-cell" title="${escapeHtml(cell)}">${escapeHtml(cell) || '—'}</td>`).join('')}</tr>
   `).join('');
-  container.innerHTML = headHtml + rowsHtml;
-  container.querySelectorAll('select').forEach(sel => {
+
+  wrap.innerHTML = `
+    <table class="import-map-table">
+      <thead><tr>${headerCellsHtml}</tr></thead>
+      <tbody>${bodyRowsHtml}</tbody>
+    </table>`;
+
+  wrap.querySelectorAll('.import-col-select').forEach(sel => {
     sel.addEventListener('change', (e) => {
       importMapping[parseInt(e.target.dataset.index)] = e.target.value;
-      renderImportPreview();
+      const th = wrap.querySelector(`th[data-th-index="${e.target.dataset.index}"]`);
+      th.classList.remove('mapped-nome', 'mapped-ignore');
+      if(e.target.value === 'nome') th.classList.add('mapped-nome');
+      if(e.target.value === 'ignore') th.classList.add('mapped-ignore');
+      updateImportSummary();
     });
   });
-  renderImportPreview();
+
+  updateImportSummary();
 }
 
-function renderImportPreview(){
-  const previewRows = importParsed.rows.slice(0, 5);
-  const table = document.getElementById('importPreviewTable');
-  table.innerHTML =
-    `<thead><tr>${importParsed.headers.map(h => `<th>${escapeHtml(h)}</th>`).join('')}</tr></thead>
-     <tbody>${previewRows.map(row => `<tr>${row.map(cell => `<td>${escapeHtml(cell)}</td>`).join('')}</tr>`).join('')}</tbody>`;
-
+function updateImportSummary(){
   const hasNome = Object.values(importMapping).includes('nome');
   const summary = document.getElementById('importSummary');
   if(hasNome){
     summary.classList.remove('warn');
-    summary.textContent = `${importParsed.rows.length} linha(s) detectada(s), prontas para importar.`;
+    summary.textContent = `${importParsed.rows.length} linha(s) detectada(s) — pronto para importar.`;
   }else{
     summary.classList.add('warn');
-    summary.textContent = 'Mapeie ao menos uma coluna como "Nome" — é obrigatório para importar.';
+    summary.textContent = 'Marque a coluna correspondente ao nome do lead como "Nome *" — é obrigatório para importar.';
   }
 }
 
