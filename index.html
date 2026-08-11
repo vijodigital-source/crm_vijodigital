@@ -186,9 +186,26 @@
   .export-btn svg{ width:13px; height:13px; }
 
   /* IMPORT */
-  .import-row{ display:flex; align-items:center; gap:10px; }
-  .import-row-label{ flex:1; font-size:12.5px; font-weight:600; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .import-row select{ flex:1; padding:8px 10px; border:1px solid var(--border); border-radius:8px; font-size:12.5px; font-family:'Inter'; background:#fff; }
+  .import-mapping-head{
+    display:grid; grid-template-columns:1fr 20px 1fr; align-items:center; gap:10px;
+    padding:0 2px 8px 2px; font-size:10.5px; font-weight:700; text-transform:uppercase;
+    letter-spacing:0.4px; color:var(--text-faint); border-bottom:1px solid var(--border); margin-bottom:2px;
+  }
+  .import-row{
+    display:grid; grid-template-columns:1fr 20px 1fr; align-items:center; gap:10px;
+    padding:8px 2px;
+  }
+  .import-row-label{
+    font-size:12.5px; font-weight:600; color:var(--text); overflow:hidden;
+    text-overflow:ellipsis; white-space:nowrap; background:var(--gray-soft);
+    padding:6px 10px; border-radius:7px;
+  }
+  .import-row-arrow{ color:var(--text-faint); text-align:center; font-size:13px; }
+  .import-row select{
+    width:100%; padding:8px 10px; border:1px solid var(--border); border-radius:8px;
+    font-size:12.5px; font-family:'Inter'; background:#fff; color:var(--text); cursor:pointer;
+  }
+  .import-row select:focus{ outline:none; border-color:var(--navy); box-shadow:0 0 0 3px rgba(27,82,120,0.12); }
   .import-preview-wrap{ overflow-x:auto; border:1px solid var(--border); border-radius:8px; max-height:180px; overflow-y:auto; }
   .import-preview-wrap table{ width:100%; font-size:11.5px; box-shadow:none; border-radius:0; }
   .import-preview-wrap th{ padding:7px 10px; background:#FAFBFC; border-bottom:1px solid var(--border); text-align:left; position:sticky; top:0; }
@@ -196,6 +213,23 @@
   .import-divider{ text-align:center; color:var(--text-faint); font-size:11.5px; margin:12px 0; text-transform:uppercase; letter-spacing:0.5px; }
   .import-summary{ margin-top:12px; font-size:12.5px; color:var(--text-soft); }
   .import-summary.warn{ color:var(--red); font-weight:600; }
+
+  .import-result-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:16px; }
+  .import-result-card{
+    border-radius:var(--radius); padding:18px 16px; text-align:center; border:1px solid var(--border);
+  }
+  .import-result-card .num{ font-size:30px; font-weight:800; font-family:'Sora'; line-height:1.1; }
+  .import-result-card .lbl{ font-size:11.5px; color:var(--text-soft); margin-top:6px; font-weight:600; }
+  .import-result-card.new{ background:var(--green-soft); border-color:#C7EBD9; }
+  .import-result-card.new .num{ color:var(--green); }
+  .import-result-card.dup{ background:var(--orange-soft); border-color:#FAD3BE; }
+  .import-result-card.dup .num{ color:var(--orange); }
+  .import-result-card.skip{ background:var(--gray-soft); border-color:var(--border); }
+  .import-result-card.skip .num{ color:var(--text-soft); }
+  .import-result-note{
+    font-size:12.5px; color:var(--text-soft); background:var(--gray-soft); border-radius:9px;
+    padding:12px 14px; line-height:1.6;
+  }
   .nicho-count{ font-weight:700; color:var(--navy); }
 
   /* TABLE */
@@ -396,6 +430,11 @@
     padding:11px 12px; border:1px solid var(--border); border-radius:9px; font-size:13.5px; font-family:'Inter';
   }
   .login-field input:focus{ outline:none; border-color:var(--navy); }
+  .login-remember{
+    display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--text-soft);
+    cursor:pointer; user-select:none; margin-bottom:16px;
+  }
+  .login-remember input{ accent-color:var(--orange); width:14px; height:14px; cursor:pointer; }
   .login-btn{
     width:100%; padding:11px; border:none; border-radius:9px; background:var(--orange); color:#fff;
     font-size:13.5px; font-weight:700; cursor:pointer; margin-top:6px; font-family:'Inter';
@@ -478,7 +517,9 @@
     .kanban-card{ cursor:pointer; }
     .kanban-move-select{ display:block; }
 
-    .import-row{ flex-direction:column; align-items:stretch; gap:4px; }
+    .import-row{ grid-template-columns:1fr; gap:4px; }
+    .import-row-arrow{ display:none; }
+    .import-mapping-head{ display:none; }
   }
 </style>
 </head>
@@ -499,6 +540,10 @@
       <label>Senha</label>
       <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password">
     </div>
+    <label class="login-remember">
+      <input type="checkbox" id="loginRemember" checked>
+      Manter conectado neste dispositivo
+    </label>
     <button class="login-btn" id="loginBtn">Entrar</button>
   </div>
 </div>
@@ -598,9 +643,9 @@
       <div class="view active" id="view-dashboard">
         <div class="kpi-grid">
           <div class="kpi-card">
-            <div class="kpi-label">Faturamento fechado</div>
+            <div class="kpi-label">Valor fechado (contratos)</div>
             <div class="kpi-value" id="kpiFaturamento">R$ 0</div>
-            <div class="kpi-sub" id="kpiFaturamentoSub">no período selecionado</div>
+            <div class="kpi-sub" id="kpiFaturamentoSub">valor total vendido — não é caixa recebido</div>
           </div>
           <div class="kpi-card">
             <div class="kpi-label">Total de leads</div>
@@ -773,6 +818,7 @@
       <div class="field">
         <label>Data última interação</label>
         <input type="date" id="fDataUltima">
+        <span style="font-size:10.5px; color:var(--text-faint); margin-top:2px;">Alterar esta data reinicia a contagem de dias sem follow-up.</span>
       </div>
       <div class="field">
         <label>Nº follow-ups enviados</label>
@@ -785,6 +831,18 @@
       <div class="field">
         <label>Data de fechamento</label>
         <input type="date" id="fDataFechamento">
+      </div>
+      <div class="field">
+        <label>Forma de pagamento</label>
+        <select id="fFormaPagamento">
+          <option value="">Não informado</option>
+          <option value="À vista">À vista</option>
+          <option value="Parcelado">Parcelado</option>
+        </select>
+      </div>
+      <div class="field" id="parcelasField" style="display:none;">
+        <label>Nº de parcelas</label>
+        <input type="number" id="fParcelas" min="2" max="24" placeholder="Ex: 3">
       </div>
       <div class="field full" id="motivoPerdaField" style="display:none;">
         <label>Motivo da perda</label>
@@ -848,12 +906,21 @@
         <div class="import-summary" id="importSummary"></div>
       </div>
 
+      <div id="importStep3" style="display:none;">
+        <div class="import-result-grid" id="importResultGrid"></div>
+        <div class="import-result-note" id="importResultNote"></div>
+      </div>
+
     </div>
-    <div class="modal-foot">
+    <div class="modal-foot" id="importFootStep12">
       <button class="btn" id="importBtnCancel">Cancelar</button>
       <div style="flex:1;"></div>
       <button class="btn btn-primary" id="importBtnNext">Analisar dados</button>
       <button class="btn btn-primary" id="importBtnConfirm" style="display:none;">Confirmar importação</button>
+    </div>
+    <div class="modal-foot" id="importFootStep3" style="display:none;">
+      <div style="flex:1;"></div>
+      <button class="btn btn-primary" id="importBtnDone">Concluir</button>
     </div>
   </div>
 </div>
@@ -875,7 +942,21 @@ let editingId = null;
 // ---------------------------------------------------------------
 const SUPABASE_URL = 'https://winsajirrrtshzupbkwa.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_UK-mrdp6WqXwh-AUl6_8qQ_iV8WVy-K';
-const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// Armazenamento da sessão: dinâmico entre localStorage (persiste indefinidamente,
+// "manter conectado") e sessionStorage (some ao fechar o navegador). A escolha do
+// usuário fica salva em REMEMBER_KEY, que é consultado a cada leitura/escrita.
+const REMEMBER_KEY = 'vijo-remember-me';
+function getSessionBackend(){
+  return localStorage.getItem(REMEMBER_KEY) === 'false' ? window.sessionStorage : window.localStorage;
+}
+const dynamicStorage = {
+  getItem: (key) => getSessionBackend().getItem(key),
+  setItem: (key, value) => getSessionBackend().setItem(key, value),
+  removeItem: (key) => getSessionBackend().removeItem(key)
+};
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: { storage: dynamicStorage, persistSession: true, autoRefreshToken: true }
+});
 
 // ---------------------------------------------------------------
 // DB MAPPING (camelCase no app <-> snake_case no Postgres)
@@ -888,6 +969,7 @@ function toDbRow(lead){
     data1: lead.data1 || null, data_ultima: lead.dataUltima || null,
     followups: lead.followups || 0, valor: lead.valor || 0,
     data_fechamento: lead.dataFechamento || null, motivo_perda: lead.motivoPerda || null,
+    forma_pagamento: lead.formaPagamento || null, parcelas: lead.parcelas || null,
     obs: lead.obs || null
   };
 }
@@ -897,7 +979,8 @@ function fromDbRow(row){
     roteiro: row.roteiro, etapa: row.etapa, servicos: row.servicos || [],
     data1: row.data1, dataUltima: row.data_ultima,
     followups: row.followups || 0, valor: parseFloat(row.valor) || 0,
-    dataFechamento: row.data_fechamento, motivoPerda: row.motivo_perda, obs: row.obs
+    dataFechamento: row.data_fechamento, motivoPerda: row.motivo_perda,
+    formaPagamento: row.forma_pagamento, parcelas: row.parcelas || null, obs: row.obs
   };
 }
 
@@ -1127,7 +1210,7 @@ function renderLeadsTable(){
       <td>${escapeHtml(l.origem)}</td>
       <td>${escapeHtml(l.roteiro)}</td>
       <td><span class="badge ${badgeClass(l.etapa)}">${l.etapa}</span></td>
-      <td>${l.valor ? formatBRL(l.valor) : '—'}</td>
+      <td>${l.valor ? formatBRL(l.valor) : '—'}${l.formaPagamento === 'Parcelado' ? `<div class="lead-sub">Parcelado${l.parcelas ? ' '+l.parcelas+'x' : ''}</div>` : ''}</td>
       <td>${l.etapa === 'Contatado' ? alerta.dias + ' dias' : '—'}</td>
       <td>${alertPillHtml(alerta)}</td>
       <td>
@@ -1171,7 +1254,7 @@ function renderKanban(){
       ? stageLeads.map(l => {
           const alerta = getAlerta(l);
           const alertHtml = (alerta.level === 1 || alerta.level === 2 || alerta.level === 'abandon')
-            ? alertPillHtml(alerta) : (l.valor ? `<span class="kanban-tag" style="color:var(--green); background:var(--green-soft);">${formatBRL(l.valor)}</span>` : '');
+            ? alertPillHtml(alerta) : (l.valor ? `<span class="kanban-tag" style="color:var(--green); background:var(--green-soft);">${formatBRL(l.valor)}${l.formaPagamento === 'Parcelado' ? ' · '+(l.parcelas||'')+'x' : ''}</span>` : '');
           return `
           <div class="kanban-card" draggable="true" data-id="${l.id}">
             <div class="kanban-card-name">${escapeHtml(l.nome)}</div>
@@ -1247,9 +1330,10 @@ async function moveLeadToStage(id, newStage){
   const patch = { etapa: newStage };
   if(newStage !== 'Contatado'){ patch.dataUltima = new Date().toISOString().slice(0,10); }
   if(newStage === 'Fechado - Ganho' && !lead.dataFechamento){ patch.dataFechamento = new Date().toISOString().slice(0,10); }
-  await dbUpdateLead(id, patch);
+  const ok = await dbUpdateLead(id, patch);
   renderAll();
-  showToast(`Movido para "${newStage}"`);
+  if(ok){ showToast(`Movido para "${newStage}"`); }
+  else{ showToast('Não foi possível mover — a alteração não foi salva.'); }
 }
 
 // ---------------------------------------------------------------
@@ -1355,25 +1439,25 @@ function renderFollowups(){
 async function markFollowupSent(id){
   const lead = leads.find(l => l.id === id);
   if(!lead) return;
-  await dbUpdateLead(id, { followups: (lead.followups || 0) + 1, dataUltima: new Date().toISOString().slice(0,10) });
+  const ok = await dbUpdateLead(id, { followups: (lead.followups || 0) + 1, dataUltima: new Date().toISOString().slice(0,10) });
   renderAll();
-  showToast('Follow-up registrado');
+  showToast(ok ? 'Follow-up registrado' : 'Não foi possível salvar — tente novamente.');
 }
 
 async function markResponded(id){
   const lead = leads.find(l => l.id === id);
   if(!lead) return;
-  await dbUpdateLead(id, { etapa: 'Respondeu', dataUltima: new Date().toISOString().slice(0,10) });
+  const ok = await dbUpdateLead(id, { etapa: 'Respondeu', dataUltima: new Date().toISOString().slice(0,10) });
   renderAll();
-  showToast('Lead marcado como respondido');
+  showToast(ok ? 'Lead marcado como respondido' : 'Não foi possível salvar — tente novamente.');
 }
 
 async function markAbandoned(id){
   const lead = leads.find(l => l.id === id);
   if(!lead) return;
-  await dbUpdateLead(id, { etapa: 'Fechado - Perdido', motivoPerda: lead.motivoPerda || 'Sem resposta (2º não)' });
+  const ok = await dbUpdateLead(id, { etapa: 'Fechado - Perdido', motivoPerda: lead.motivoPerda || 'Sem resposta (2º não)' });
   renderAll();
-  showToast('Lead marcado como perdido');
+  showToast(ok ? 'Lead marcado como perdido' : 'Não foi possível salvar — tente novamente.');
 }
 
 // ---------------------------------------------------------------
@@ -1491,6 +1575,9 @@ function openImportModal(){
   document.getElementById('importFileInput').value = '';
   document.getElementById('importStep1').style.display = 'block';
   document.getElementById('importStep2').style.display = 'none';
+  document.getElementById('importStep3').style.display = 'none';
+  document.getElementById('importFootStep12').style.display = 'flex';
+  document.getElementById('importFootStep3').style.display = 'none';
   document.getElementById('importBtnNext').style.display = 'inline-flex';
   document.getElementById('importBtnConfirm').style.display = 'none';
   document.getElementById('importModalOverlay').classList.add('active');
@@ -1533,14 +1620,22 @@ function processImportInput(){
 
 function renderImportMapping(){
   const container = document.getElementById('importMappingContainer');
-  container.innerHTML = importParsed.headers.map((h, i) => `
+  const headHtml = `
+    <div class="import-mapping-head">
+      <span>Coluna do seu arquivo</span>
+      <span></span>
+      <span>Campo no CRM</span>
+    </div>`;
+  const rowsHtml = importParsed.headers.map((h, i) => `
     <div class="import-row">
       <span class="import-row-label">${escapeHtml(h)}</span>
+      <span class="import-row-arrow">→</span>
       <select data-index="${i}">
         ${IMPORT_FIELD_OPTIONS.map(([val,label]) => `<option value="${val}" ${importMapping[i]===val ? 'selected' : ''}>${label}</option>`).join('')}
       </select>
     </div>
   `).join('');
+  container.innerHTML = headHtml + rowsHtml;
   container.querySelectorAll('select').forEach(sel => {
     sel.addEventListener('change', (e) => {
       importMapping[parseInt(e.target.dataset.index)] = e.target.value;
@@ -1616,12 +1711,33 @@ async function confirmImport(){
   leads = leads.concat(inserted);
   const imported = inserted.length;
   renderAll();
-  closeImportModal();
 
-  let msg = `${imported} lead(s) importado(s)`;
-  if(skippedDuplicate) msg += ` · ${skippedDuplicate} duplicado(s) ignorado(s)`;
-  if(skippedNoName) msg += ` · ${skippedNoName} sem nome ignorado(s)`;
-  showToast(msg);
+  showImportResult(imported, skippedDuplicate, skippedNoName);
+}
+
+function showImportResult(imported, duplicates, noName){
+  document.getElementById('importStep1').style.display = 'none';
+  document.getElementById('importStep2').style.display = 'none';
+  document.getElementById('importStep3').style.display = 'block';
+  document.getElementById('importFootStep12').style.display = 'none';
+  document.getElementById('importFootStep3').style.display = 'flex';
+
+  const cards = [
+    { count: imported, label: 'Leads novos importados', cls: 'new' },
+    { count: duplicates, label: 'Duplicados ignorados', cls: 'dup' }
+  ];
+  if(noName > 0){ cards.push({ count: noName, label: 'Sem nome (ignorados)', cls: 'skip' }); }
+
+  document.getElementById('importResultGrid').innerHTML = cards.map(c => `
+    <div class="import-result-card ${c.cls}">
+      <div class="num">${c.count}</div>
+      <div class="lbl">${c.label}</div>
+    </div>
+  `).join('');
+
+  document.getElementById('importResultNote').textContent = duplicates > 0
+    ? `${duplicates} linha(s) do arquivo tinham telefone já cadastrado no CRM. Nesses casos, o lead que já estava no sistema foi mantido como está, e a linha importada foi descartada — nada foi sobrescrito.`
+    : 'Nenhum duplicado encontrado — todos os telefones do arquivo eram novos.';
 }
 
 function downloadImportTemplate(){
@@ -1662,6 +1778,8 @@ function openModal(id){
     document.getElementById('fFollowups').value = lead.followups || 0;
     document.getElementById('fValor').value = lead.valor || '';
     document.getElementById('fDataFechamento').value = lead.dataFechamento || '';
+    document.getElementById('fFormaPagamento').value = lead.formaPagamento || '';
+    document.getElementById('fParcelas').value = lead.parcelas || '';
     document.getElementById('fMotivoPerda').value = lead.motivoPerda || '';
     document.getElementById('fObs').value = lead.obs || '';
     document.getElementById('btnDeleteLead').style.display = 'inline-flex';
@@ -1679,11 +1797,14 @@ function openModal(id){
     document.getElementById('fFollowups').value = 0;
     document.getElementById('fValor').value = '';
     document.getElementById('fDataFechamento').value = '';
+    document.getElementById('fFormaPagamento').value = '';
+    document.getElementById('fParcelas').value = '';
     document.getElementById('fMotivoPerda').value = '';
     document.getElementById('fObs').value = '';
     document.getElementById('btnDeleteLead').style.display = 'none';
   }
   toggleMotivoField();
+  toggleParcelasField();
   overlay.classList.add('active');
   document.getElementById('fNome').focus();
 }
@@ -1701,6 +1822,11 @@ function getServiceChecks(){
 function toggleMotivoField(){
   const show = document.getElementById('fEtapa').value === 'Fechado - Perdido';
   document.getElementById('motivoPerdaField').style.display = show ? 'flex' : 'none';
+}
+
+function toggleParcelasField(){
+  const show = document.getElementById('fFormaPagamento').value === 'Parcelado';
+  document.getElementById('parcelasField').style.display = show ? 'flex' : 'none';
 }
 
 function closeModal(){
@@ -1725,6 +1851,9 @@ async function saveLead(){
     followups: parseInt(document.getElementById('fFollowups').value) || 0,
     valor: parseFloat(document.getElementById('fValor').value) || 0,
     dataFechamento: document.getElementById('fDataFechamento').value,
+    formaPagamento: document.getElementById('fFormaPagamento').value,
+    parcelas: document.getElementById('fFormaPagamento').value === 'Parcelado'
+      ? (parseInt(document.getElementById('fParcelas').value) || null) : null,
     motivoPerda: document.getElementById('fMotivoPerda').value,
     obs: document.getElementById('fObs').value.trim()
   };
@@ -1733,11 +1862,22 @@ async function saveLead(){
     data.dataFechamento = new Date().toISOString().slice(0,10);
   }
 
+  const btnSave = document.getElementById('btnSave');
+  btnSave.disabled = true;
+
+  let ok = false;
   if(editingId){
-    await dbUpdateLead(editingId, data);
+    ok = await dbUpdateLead(editingId, data);
   }else{
     const inserted = await dbInsertLead(data);
-    if(inserted){ leads.push(inserted); }
+    if(inserted){ leads.push(inserted); ok = true; }
+  }
+
+  btnSave.disabled = false;
+
+  if(!ok){
+    showToast('Não foi possível salvar. Confira a conexão e tente novamente.');
+    return; // mantém o modal aberto para não perder o que foi digitado
   }
 
   closeModal();
@@ -1904,6 +2044,7 @@ document.getElementById('periodSelect').addEventListener('change', (e) => {
 document.getElementById('periodStart').addEventListener('change', renderAll);
 document.getElementById('periodEnd').addEventListener('change', renderAll);
 document.getElementById('fEtapa').addEventListener('change', toggleMotivoField);
+document.getElementById('fFormaPagamento').addEventListener('change', toggleParcelasField);
 document.getElementById('btnExport').addEventListener('click', exportCSV);
 document.getElementById('btnImportLeads').addEventListener('click', openImportModal);
 document.getElementById('importModalClose').addEventListener('click', closeImportModal);
@@ -1927,6 +2068,7 @@ document.getElementById('importFileInput').addEventListener('change', (e) => {
 });
 document.getElementById('importBtnNext').addEventListener('click', processImportInput);
 document.getElementById('importBtnConfirm').addEventListener('click', confirmImport);
+document.getElementById('importBtnDone').addEventListener('click', closeImportModal);
 document.getElementById('btnDownloadTemplate').addEventListener('click', downloadImportTemplate);
 
 // ---------------------------------------------------------------
@@ -1945,6 +2087,7 @@ function showLogin(msg){
   document.getElementById('app').style.display = 'none';
   document.getElementById('loadingScreen').style.display = 'none';
   document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('loginRemember').checked = localStorage.getItem(REMEMBER_KEY) !== 'false';
   const errBox = document.getElementById('loginError');
   if(msg){ errBox.textContent = msg; errBox.classList.add('show'); }
   else{ errBox.classList.remove('show'); errBox.textContent = ''; }
@@ -1953,8 +2096,14 @@ function showLogin(msg){
 async function handleLogin(){
   const email = document.getElementById('loginEmail').value.trim();
   const password = document.getElementById('loginPassword').value;
+  const remember = document.getElementById('loginRemember').checked;
   const btn = document.getElementById('loginBtn');
   if(!email || !password){ showLogin('Preencha e-mail e senha.'); return; }
+
+  // Define o backend de armazenamento ANTES de autenticar, para que o token
+  // já seja salvo no lugar certo (localStorage ou sessionStorage).
+  localStorage.setItem(REMEMBER_KEY, remember ? 'true' : 'false');
+
   btn.disabled = true;
   btn.textContent = 'Entrando...';
   try{
