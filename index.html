@@ -309,6 +309,20 @@
   .modal-close{ cursor:pointer; color:var(--text-faint); width:30px; height:30px; display:flex; align-items:center; justify-content:center; border-radius:8px; }
   .modal-close:hover{ background:var(--gray-soft); }
   .modal-body{ padding:22px 24px; display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .service-checks{ display:flex; flex-wrap:wrap; gap:8px; }
+  .service-check{
+    display:flex; align-items:center; gap:6px; padding:7px 13px; border:1px solid var(--border);
+    border-radius:20px; font-size:12.5px; font-weight:500; cursor:pointer; user-select:none;
+    transition:all 0.15s; color:var(--text-soft);
+  }
+  .service-check input{ accent-color:var(--orange); width:13px; height:13px; }
+  .service-check:has(input:checked){
+    background:var(--orange-soft); border-color:var(--orange); color:var(--orange); font-weight:700;
+  }
+  .service-tag{
+    display:inline-block; font-size:10.5px; font-weight:600; padding:2px 8px; border-radius:6px;
+    background:#EAF0F5; color:var(--navy); margin-right:4px; white-space:nowrap;
+  }
   .field{ display:flex; flex-direction:column; gap:6px; }
   .field.full{ grid-column:1/-1; }
   .field label{ font-size:12px; font-weight:600; color:var(--text-soft); }
@@ -397,16 +411,74 @@
     width:100%; margin-top:8px; padding:8px 10px; border-radius:8px; border:1px solid rgba(255,255,255,0.15);
     background:transparent; color:rgba(255,255,255,0.55); font-size:11.5px; font-weight:600; cursor:pointer;
     font-family:'Inter'; transition:background 0.15s, color 0.15s;
+    display:flex; align-items:center; justify-content:center; gap:6px;
   }
   .logout-btn:hover{ background:rgba(255,255,255,0.08); color:#fff; }
+
+  /* TABLE HORIZONTAL SCROLL (all breakpoints) */
+  #leadsTableWrap{ overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  #leadsTableWrap table{ min-width:760px; }
+
+  /* KANBAN MOBILE MOVE CONTROL */
+  .kanban-move-select{
+    display:none; width:100%; margin-top:9px; padding:7px 8px; border:1px solid var(--border);
+    border-radius:7px; font-size:11.5px; font-family:'Inter'; background:#fff; color:var(--text);
+  }
 
   @media (max-width: 900px){
     .kpi-grid{ grid-template-columns:repeat(2,1fr); }
     .panel-row{ grid-template-columns:1fr; }
-    .sidebar{ width:72px; }
+  }
+
+  @media (max-width: 680px){
+    body{ font-size:13.5px; }
+    .sidebar{ width:64px; }
+    .brand{ padding:20px 10px 14px 10px; justify-content:center; }
     .brand-text{ display:none; }
+    .brand-mark{ width:30px; height:30px; font-size:13px; }
+    nav{ padding:14px 8px; }
+    .nav-item{ justify-content:center; padding:10px 8px; }
+    .nav-item .nav-left{ gap:0; }
     .nav-item .nav-left span.label{ display:none; }
-    .sidebar-foot{ display:none; }
+    .nav-badge{ position:absolute; margin-left:14px; margin-top:-14px; }
+    .sidebar-foot{ padding:12px 8px 16px 8px; }
+    .sidebar-foot-text{ display:none; }
+    .export-btn .btn-label, .logout-btn .btn-label{ display:none; }
+    .export-btn, .logout-btn{ padding:9px; }
+
+    .topbar{ padding:14px 16px; flex-wrap:wrap; gap:10px; align-items:flex-start; }
+    .topbar h1{ font-size:16.5px; }
+    .topbar-actions{ width:100%; flex-wrap:wrap; gap:8px; }
+    .period-group{ flex:1; min-width:0; }
+    .period-select{ width:100%; }
+    .period-custom{ flex-wrap:wrap; width:100%; }
+    .period-custom input{ flex:1; min-width:0; }
+    #btnImportLeads, #btnNewLead{ flex:1; justify-content:center; white-space:nowrap; }
+
+    .content{ padding:16px 16px 40px 16px; }
+    .kpi-grid{ grid-template-columns:1fr 1fr; gap:10px; }
+    .kpi-card{ padding:14px 14px; }
+    .kpi-value{ font-size:21px; }
+
+    .table-toolbar{ flex-direction:column; align-items:stretch; }
+    .search-box{ min-width:0; }
+
+    .modal-overlay{ padding:0; align-items:flex-end; }
+    .modal{ max-width:100%; border-radius:16px 16px 0 0; max-height:92vh; overflow-y:auto; }
+    .modal-body{ grid-template-columns:1fr; }
+
+    .fu-top{ flex-direction:column; align-items:stretch; gap:12px; }
+    .fu-right{ justify-content:space-between; flex-wrap:wrap; gap:10px; }
+    .fu-actions{ width:100%; flex-wrap:wrap; }
+    .fu-actions .btn{ flex:1; justify-content:center; white-space:nowrap; }
+    .fu-suggestion{ flex-direction:column; align-items:stretch; }
+    .fu-copy-btn{ width:100%; justify-content:center; }
+
+    .kanban-col{ flex:0 0 78vw; max-height:none; }
+    .kanban-card{ cursor:pointer; }
+    .kanban-move-select{ display:block; }
+
+    .import-row{ flex-direction:column; align-items:stretch; gap:4px; }
   }
 </style>
 </head>
@@ -473,12 +545,15 @@
       </div>
     </nav>
     <div class="sidebar-foot">
-      Controle de leads e follow-up<br>Vijo Digital © 2026
+      <span class="sidebar-foot-text">Controle de leads e follow-up<br>Vijo Digital © 2026</span>
       <button class="export-btn" id="btnExport">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
-        Exportar dados (CSV)
+        <span class="btn-label">Exportar dados (CSV)</span>
       </button>
-      <button class="logout-btn" id="btnLogout">Sair da conta</button>
+      <button class="logout-btn" id="btnLogout">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
+        <span class="btn-label">Sair da conta</span>
+      </button>
     </div>
   </div>
 
@@ -604,6 +679,13 @@
             <option>Advocacia</option>
             <option>Outro</option>
           </select>
+          <select class="filter-select" id="filterServico">
+            <option value="">Todos os serviços</option>
+            <option>Site</option>
+            <option>Tráfego Pago</option>
+            <option>Agente IA</option>
+            <option>Artes</option>
+          </select>
           <label class="check-toggle">
             <input type="checkbox" id="filterAlerta">
             Somente com alerta
@@ -638,6 +720,15 @@
       <div class="field">
         <label>Telefone</label>
         <input type="text" id="fTelefone" placeholder="(21) 99999-0000">
+      </div>
+      <div class="field full">
+        <label>Tipo de serviço</label>
+        <div class="service-checks">
+          <label class="service-check"><input type="checkbox" name="fServico" value="Site"> Site</label>
+          <label class="service-check"><input type="checkbox" name="fServico" value="Tráfego Pago"> Tráfego Pago</label>
+          <label class="service-check"><input type="checkbox" name="fServico" value="Agente IA"> Agente IA</label>
+          <label class="service-check"><input type="checkbox" name="fServico" value="Artes"> Artes</label>
+        </div>
       </div>
       <div class="field">
         <label>Nicho</label>
@@ -793,6 +884,7 @@ function toDbRow(lead){
   return {
     nome: lead.nome, telefone: lead.telefone || null, nicho: lead.nicho || null,
     origem: lead.origem || null, roteiro: lead.roteiro || null, etapa: lead.etapa || 'Contatado',
+    servicos: lead.servicos || [],
     data1: lead.data1 || null, data_ultima: lead.dataUltima || null,
     followups: lead.followups || 0, valor: lead.valor || 0,
     data_fechamento: lead.dataFechamento || null, motivo_perda: lead.motivoPerda || null,
@@ -802,7 +894,8 @@ function toDbRow(lead){
 function fromDbRow(row){
   return {
     id: row.id, nome: row.nome, telefone: row.telefone, nicho: row.nicho, origem: row.origem,
-    roteiro: row.roteiro, etapa: row.etapa, data1: row.data1, dataUltima: row.data_ultima,
+    roteiro: row.roteiro, etapa: row.etapa, servicos: row.servicos || [],
+    data1: row.data1, dataUltima: row.data_ultima,
     followups: row.followups || 0, valor: parseFloat(row.valor) || 0,
     dataFechamento: row.data_fechamento, motivoPerda: row.motivo_perda, obs: row.obs
   };
@@ -987,6 +1080,7 @@ function getFilteredLeads(){
   const search = document.getElementById('searchInput').value.toLowerCase().trim();
   const fEtapa = document.getElementById('filterEtapa').value;
   const fNicho = document.getElementById('filterNicho').value;
+  const fServico = document.getElementById('filterServico').value;
   const onlyAlert = document.getElementById('filterAlerta').checked;
   const range = getPeriodRange();
 
@@ -995,6 +1089,7 @@ function getFilteredLeads(){
     if(search && !(l.nome.toLowerCase().includes(search) || (l.telefone||'').toLowerCase().includes(search))) return false;
     if(fEtapa && l.etapa !== fEtapa) return false;
     if(fNicho && l.nicho !== fNicho) return false;
+    if(fServico && !(l.servicos || []).includes(fServico)) return false;
     if(onlyAlert){
       const a = getAlerta(l);
       if(a.level !== 1 && a.level !== 2) return false;
@@ -1028,6 +1123,7 @@ function renderLeadsTable(){
         <div class="lead-sub">${escapeHtml(l.telefone||'')}${l.telefone ? waLinkHtml(l.telefone) : ''}</div>
       </td>
       <td>${escapeHtml(l.nicho)}</td>
+      <td>${(l.servicos && l.servicos.length) ? l.servicos.map(s => `<span class="service-tag">${escapeHtml(s)}</span>`).join('') : '—'}</td>
       <td>${escapeHtml(l.origem)}</td>
       <td>${escapeHtml(l.roteiro)}</td>
       <td><span class="badge ${badgeClass(l.etapa)}">${l.etapa}</span></td>
@@ -1050,7 +1146,7 @@ function renderLeadsTable(){
   wrap.innerHTML = `
     <table>
       <thead><tr>
-        <th>Lead</th><th>Nicho</th><th>Origem</th><th>Roteiro</th><th>Etapa</th><th>Valor</th><th>Dias s/ resposta</th><th>Alerta</th><th></th>
+        <th>Lead</th><th>Nicho</th><th>Serviços</th><th>Origem</th><th>Roteiro</th><th>Etapa</th><th>Valor</th><th>Dias s/ resposta</th><th>Alerta</th><th></th>
       </tr></thead>
       <tbody>${rows}</tbody>
     </table>`;
@@ -1080,10 +1176,14 @@ function renderKanban(){
           <div class="kanban-card" draggable="true" data-id="${l.id}">
             <div class="kanban-card-name">${escapeHtml(l.nome)}</div>
             <div class="kanban-card-meta">${escapeHtml(l.telefone||'')}${l.telefone ? waLinkHtml(l.telefone) : ''}</div>
+            ${(l.servicos && l.servicos.length) ? `<div style="margin-bottom:7px;">${l.servicos.map(s => `<span class="service-tag">${escapeHtml(s)}</span>`).join('')}</div>` : ''}
             <div class="kanban-card-foot">
               <span class="kanban-tag">${l.nicho}</span>
               ${alertHtml}
             </div>
+            <select class="kanban-move-select" data-id="${l.id}" onclick="event.stopPropagation()">
+              ${KANBAN_STAGES.map(s => `<option value="${s}" ${s===l.etapa?'selected':''}>${s}</option>`).join('')}
+            </select>
           </div>`;
         }).join('')
       : `<div class="kanban-empty">Nenhum lead nesta etapa</div>`;
@@ -1108,7 +1208,6 @@ function renderKanban(){
 function attachKanbanEvents(){
   const cards = document.querySelectorAll('.kanban-card');
   const cols = document.querySelectorAll('.kanban-col');
-  const dropZones = document.querySelectorAll('.kanban-cards');
 
   cards.forEach(card => {
     card.addEventListener('dragstart', (e) => {
@@ -1119,6 +1218,7 @@ function attachKanbanEvents(){
     card.addEventListener('dragend', () => card.classList.remove('dragging'));
     card.addEventListener('click', (e) => {
       if(card.classList.contains('dragging')) return;
+      if(e.target.classList.contains('kanban-move-select')) return;
       openModal(parseInt(card.dataset.id));
     });
   });
@@ -1130,17 +1230,26 @@ function attachKanbanEvents(){
       e.preventDefault();
       col.classList.remove('drag-over');
       const id = parseInt(e.dataTransfer.getData('text/plain'));
-      const newStage = col.dataset.stage;
-      const lead = leads.find(l => l.id === id);
-      if(!lead || lead.etapa === newStage) return;
-      const patch = { etapa: newStage };
-      if(newStage !== 'Contatado'){ patch.dataUltima = new Date().toISOString().slice(0,10); }
-      if(newStage === 'Fechado - Ganho' && !lead.dataFechamento){ patch.dataFechamento = new Date().toISOString().slice(0,10); }
-      await dbUpdateLead(id, patch);
-      renderAll();
-      showToast(`Movido para "${newStage}"`);
+      await moveLeadToStage(id, col.dataset.stage);
     });
   });
+
+  document.querySelectorAll('.kanban-move-select').forEach(sel => {
+    sel.addEventListener('change', async (e) => {
+      await moveLeadToStage(parseInt(e.target.dataset.id), e.target.value);
+    });
+  });
+}
+
+async function moveLeadToStage(id, newStage){
+  const lead = leads.find(l => l.id === id);
+  if(!lead || lead.etapa === newStage) return;
+  const patch = { etapa: newStage };
+  if(newStage !== 'Contatado'){ patch.dataUltima = new Date().toISOString().slice(0,10); }
+  if(newStage === 'Fechado - Ganho' && !lead.dataFechamento){ patch.dataFechamento = new Date().toISOString().slice(0,10); }
+  await dbUpdateLead(id, patch);
+  renderAll();
+  showToast(`Movido para "${newStage}"`);
 }
 
 // ---------------------------------------------------------------
@@ -1520,6 +1629,7 @@ function openModal(id){
     document.getElementById('modalTitle').textContent = 'Editar lead';
     document.getElementById('fNome').value = lead.nome;
     document.getElementById('fTelefone').value = lead.telefone || '';
+    setServiceChecks(lead.servicos || []);
     document.getElementById('fNicho').value = lead.nicho;
     document.getElementById('fOrigem').value = lead.origem;
     document.getElementById('fRoteiro').value = lead.roteiro;
@@ -1536,6 +1646,7 @@ function openModal(id){
     document.getElementById('modalTitle').textContent = 'Novo lead';
     document.getElementById('fNome').value = '';
     document.getElementById('fTelefone').value = '';
+    setServiceChecks([]);
     document.getElementById('fNicho').value = 'Odontológico';
     document.getElementById('fOrigem').value = 'Google Maps';
     document.getElementById('fRoteiro').value = 'Teste 1';
@@ -1552,6 +1663,16 @@ function openModal(id){
   toggleMotivoField();
   overlay.classList.add('active');
   document.getElementById('fNome').focus();
+}
+
+function setServiceChecks(servicos){
+  document.querySelectorAll('input[name="fServico"]').forEach(chk => {
+    chk.checked = servicos.includes(chk.value);
+  });
+}
+
+function getServiceChecks(){
+  return Array.from(document.querySelectorAll('input[name="fServico"]:checked')).map(chk => chk.value);
 }
 
 function toggleMotivoField(){
@@ -1571,6 +1692,7 @@ async function saveLead(){
   const data = {
     nome,
     telefone: document.getElementById('fTelefone').value.trim(),
+    servicos: getServiceChecks(),
     nicho: document.getElementById('fNicho').value,
     origem: document.getElementById('fOrigem').value,
     roteiro: document.getElementById('fRoteiro').value,
@@ -1623,7 +1745,7 @@ function waLinkHtml(phone){
 }
 
 function exportCSV(){
-  const headers = ['ID','Nome','Telefone','Nicho','Origem','Roteiro','Etapa','Data 1º Contato','Data Última Interação','Nº Follow-ups','Valor','Data Fechamento','Motivo Perda','Observações'];
+  const headers = ['ID','Nome','Telefone','Nicho','Serviços','Origem','Roteiro','Etapa','Data 1º Contato','Data Última Interação','Nº Follow-ups','Valor','Data Fechamento','Motivo Perda','Observações'];
   const csvEscape = (val) => {
     const s = String(val ?? '');
     if(s.includes(',') || s.includes('"') || s.includes('\n')){
@@ -1632,7 +1754,7 @@ function exportCSV(){
     return s;
   };
   const rows = leads.map(l => [
-    l.id, l.nome, l.telefone, l.nicho, l.origem, l.roteiro, l.etapa,
+    l.id, l.nome, l.telefone, l.nicho, (l.servicos || []).join(' | '), l.origem, l.roteiro, l.etapa,
     l.data1, l.dataUltima, l.followups, l.valor, l.dataFechamento || '', l.motivoPerda || '', l.obs
   ].map(csvEscape).join(','));
   const csv = [headers.join(','), ...rows].join('\n');
@@ -1750,6 +1872,7 @@ document.getElementById('modalOverlay').addEventListener('click', (e) => { if(e.
 document.getElementById('searchInput').addEventListener('input', renderLeadsTable);
 document.getElementById('filterEtapa').addEventListener('change', renderLeadsTable);
 document.getElementById('filterNicho').addEventListener('change', renderLeadsTable);
+document.getElementById('filterServico').addEventListener('change', renderLeadsTable);
 document.getElementById('filterAlerta').addEventListener('change', renderLeadsTable);
 document.getElementById('periodSelect').addEventListener('change', (e) => {
   document.getElementById('periodCustom').classList.toggle('active', e.target.value === 'custom');
