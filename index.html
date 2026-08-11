@@ -784,7 +784,7 @@ let editingId = null;
 // ---------------------------------------------------------------
 const SUPABASE_URL = 'https://winsajirrrtshzupbkwa.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_UK-mrdp6WqXwh-AUl6_8qQ_iV8WVy-K';
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // ---------------------------------------------------------------
 // DB MAPPING (camelCase no app <-> snake_case no Postgres)
@@ -812,7 +812,7 @@ function fromDbRow(row){
 // STORAGE (Supabase)
 // ---------------------------------------------------------------
 async function loadLeads(){
-  const { data, error } = await supabase.from('leads').select('*').order('id', { ascending: true });
+  const { data, error } = await sb.from('leads').select('*').order('id', { ascending: true });
   if(error){
     console.error('Erro ao carregar leads', error);
     showToast('Erro ao carregar dados do banco');
@@ -823,7 +823,7 @@ async function loadLeads(){
 }
 
 async function dbInsertLead(leadData){
-  const { data, error } = await supabase.from('leads').insert(toDbRow(leadData)).select().single();
+  const { data, error } = await sb.from('leads').insert(toDbRow(leadData)).select().single();
   if(error){ console.error('Erro ao inserir lead', error); showToast('Erro ao salvar no banco'); return null; }
   return fromDbRow(data);
 }
@@ -831,21 +831,21 @@ async function dbInsertLead(leadData){
 async function dbUpdateLead(id, patch){
   const current = leads.find(l => l.id === id);
   const merged = { ...current, ...patch };
-  const { error } = await supabase.from('leads').update(toDbRow(merged)).eq('id', id);
+  const { error } = await sb.from('leads').update(toDbRow(merged)).eq('id', id);
   if(error){ console.error('Erro ao atualizar lead', error); showToast('Erro ao salvar no banco'); return false; }
   Object.assign(current, patch);
   return true;
 }
 
 async function dbDeleteLead(id){
-  const { error } = await supabase.from('leads').delete().eq('id', id);
+  const { error } = await sb.from('leads').delete().eq('id', id);
   if(error){ console.error('Erro ao excluir lead', error); showToast('Erro ao excluir no banco'); return false; }
   return true;
 }
 
 async function dbBulkInsert(newLeadsData){
   const rows = newLeadsData.map(toDbRow);
-  const { data, error } = await supabase.from('leads').insert(rows).select();
+  const { data, error } = await sb.from('leads').insert(rows).select();
   if(error){ console.error('Erro ao importar leads', error); showToast('Erro ao importar leads'); return []; }
   return (data || []).map(fromDbRow);
 }
@@ -1803,7 +1803,7 @@ async function handleLogin(){
   btn.disabled = true;
   btn.textContent = 'Entrando...';
   try{
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { error } = await sb.auth.signInWithPassword({ email, password });
     btn.disabled = false;
     btn.textContent = 'Entrar';
     if(error){
@@ -1820,7 +1820,7 @@ async function handleLogin(){
 }
 
 async function handleLogout(){
-  await supabase.auth.signOut();
+  await sb.auth.signOut();
   showLogin();
 }
 
@@ -1834,7 +1834,7 @@ document.getElementById('btnLogout').addEventListener('click', handleLogout);
 (async function init(){
   document.getElementById('loadingScreen').style.display = 'none';
   try{
-    const { data: { session } } = await supabase.auth.getSession();
+    const { data: { session } } = await sb.auth.getSession();
     if(session){
       await showApp();
     }else{
