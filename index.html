@@ -1468,8 +1468,8 @@ let importMapping = {};
 
 const IMPORT_FIELD_OPTIONS = [
   ['ignore','Ignorar coluna'], ['nome','Nome'], ['telefone','Telefone'], ['nicho','Nicho'],
-  ['origem','Origem'], ['roteiro','Roteiro'], ['etapa','Etapa'], ['data1','Data 1º Contato'],
-  ['valor','Valor (R$)'], ['obs','Observações']
+  ['servicos','Tipo de Serviço'], ['origem','Origem'], ['roteiro','Roteiro'], ['etapa','Etapa'],
+  ['data1','Data 1º Contato'], ['valor','Valor (R$)'], ['formaPagamento','Forma de Pagamento'], ['obs','Observações']
 ];
 
 function parseDelimitedLine(line, delimiter){
@@ -1496,14 +1496,38 @@ function guessField(header){
   const h = header.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
   if(h.includes('nome') || h.includes('clinica') || h.includes('empresa') || h.includes('lead')) return 'nome';
   if(h.includes('telefone') || h.includes('whats') || h.includes('celular') || h.includes('fone') || h.includes('phone')) return 'telefone';
+  if(h.includes('servico') || h.includes('produto')) return 'servicos';
   if(h.includes('nicho') || h.includes('segmento') || h.includes('categoria')) return 'nicho';
   if(h.includes('origem') || h.includes('fonte') || h.includes('source')) return 'origem';
   if(h.includes('roteiro') || h.includes('script') || h.includes('teste')) return 'roteiro';
   if((h.includes('etapa') || h.includes('status')) && !h.includes('data')) return 'etapa';
   if(h.includes('data')) return 'data1';
+  if(h.includes('pagamento') || h.includes('parcela')) return 'formaPagamento';
   if(h.includes('valor') || h.includes('preco') || h.includes('price')) return 'valor';
   if(h.includes('obs') || h.includes('nota') || h.includes('coment')) return 'obs';
   return 'ignore';
+}
+
+function normalizeServicos(v){
+  if(!v) return [];
+  const tokens = v.split(/[|,;/]+/).map(t => t.trim()).filter(Boolean);
+  const result = [];
+  tokens.forEach(t => {
+    const s = t.toLowerCase();
+    if(s.includes('site') || s.includes('web') || s.includes('landing')) result.push('Site');
+    else if(s.includes('trafego') || s.includes('tráfego') || s.includes('ads') || s.includes('anuncio')) result.push('Tráfego Pago');
+    else if(s.includes('agente') || s.includes(' ia') || s.includes('bot') || s.includes('automac')) result.push('Agente IA');
+    else if(s.includes('arte') || s.includes('instagram') || s.includes('post') || s.includes('design')) result.push('Artes');
+  });
+  return [...new Set(result)];
+}
+
+function normalizeFormaPagamento(v){
+  if(!v) return '';
+  const s = v.toLowerCase();
+  if(s.includes('parcel')) return 'Parcelado';
+  if(s.includes('vista')) return 'À vista';
+  return '';
 }
 
 function normalizeNicho(v){
@@ -1693,6 +1717,7 @@ async function confirmImport(){
     newLeadsData.push({
       nome,
       telefone: telefoneRaw,
+      servicos: normalizeServicos(getVal(row, 'servicos')),
       nicho: normalizeNicho(getVal(row, 'nicho')),
       origem: normalizeOrigem(getVal(row, 'origem')),
       roteiro: normalizeRoteiro(getVal(row, 'roteiro')),
@@ -1702,6 +1727,8 @@ async function confirmImport(){
       followups: 0,
       valor: normalizeValor(getVal(row, 'valor')),
       dataFechamento: etapa === 'Fechado - Ganho' ? data1 : '',
+      formaPagamento: normalizeFormaPagamento(getVal(row, 'formaPagamento')),
+      parcelas: null,
       motivoPerda: etapa === 'Fechado - Perdido' ? 'Não informado' : '',
       obs: getVal(row, 'obs')
     });
